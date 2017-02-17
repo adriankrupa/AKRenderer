@@ -56,3 +56,7 @@ include_directories(${glfw_INCLUDE_DIR})
 
 
 target_link_libraries(AKRenderer ${glfw_INSTALL_DIR}/lib/libglfw3.a)
+
+if (UNIX)
+    target_link_libraries(AKRenderer dl X11 pthread GL m GLU Xrandr Xi Xxf86vm Xcursor Xinerama)
+endif (UNIX)
