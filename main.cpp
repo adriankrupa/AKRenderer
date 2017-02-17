@@ -1,7 +1,8 @@
 #include <iostream>
 #include <glm/common.hpp>
 #include <glbinding/gl/gl.h>
-#include <GLFW/glfw3.h>
+#include <glbinding/Binding.h>
+#include <glfw/glfw3.h>
 
 using namespace gl;
 
@@ -31,11 +32,13 @@ int main() {
         glfwPollEvents();
         // Keep running
     }
-   std::cout << glGetString(GL_VENDOR);
+    glbinding::Binding::initialize();
+//    glClear(GL_COLOR_BUFFER_BIT);
+    std::cout << glGetString(GL_VENDOR);
 //    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    glfwDestroyWindow(window);
-
-    glfwTerminate();
+//    glfwDestroyWindow(window);
+//
+//    glfwTerminate();
     return 0;
 }

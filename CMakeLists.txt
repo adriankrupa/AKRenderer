@@ -30,7 +30,7 @@ ExternalProject_Add(glm
 set(glfw_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 set(glfw_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 set(glfw_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/glfw/include")
-set(glfw_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${glfw_INSTALL_DIR})
+set(glfw_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${glfw_INSTALL_DIR} -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DBUILD_SHARED_LIBS=OFF)
 
 message("glfw_PREFIX='${glfw_PREFIX}'")
 message("glfw_INSTALL_DIR='${glfw_INSTALL_DIR}'")
@@ -75,9 +75,13 @@ include_directories(${glfw_INCLUDE_DIR})
 include_directories(${glbinding_INCLUDE_DIR})
 
 
-target_link_libraries(AKRenderer ${glfw_INSTALL_DIR}/lib/libglfw3.a)
-target_link_libraries(AKRenderer ${glbinding_INSTALL_DIR}/lib/libglbinding.a)
+target_link_libraries(AKRenderer ${glfw_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3${CMAKE_STATIC_LIBRARY_SUFFIX})
+target_link_libraries(AKRenderer ${glbinding_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glbinding${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 if (UNIX)
     target_link_libraries(AKRenderer dl X11 pthread GL m GLU Xrandr Xi Xxf86vm Xcursor Xinerama)
 endif (UNIX)
+
+if (WIN32)
+    target_link_libraries(AKRenderer opengl32)
+endif(WIN32)
