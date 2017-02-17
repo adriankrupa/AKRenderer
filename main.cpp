@@ -1,6 +1,9 @@
 #include <iostream>
 #include <glm/common.hpp>
+#include <glbinding/gl/gl.h>
 #include <GLFW/glfw3.h>
+
+using namespace gl;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -28,6 +31,9 @@ int main() {
         glfwPollEvents();
         // Keep running
     }
+   std::cout << glGetString(GL_VENDOR);
+//    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+
     glfwDestroyWindow(window);
 
     glfwTerminate();
