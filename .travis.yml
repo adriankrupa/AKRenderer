@@ -4,44 +4,90 @@ language: cpp
 
 matrix:
   include:
-    - compiler: gcc
-      addons:
+    - env: BUILD_TYPE=Debug
+      os: osx
+      osx_image: xcode8
+      compiler: clang
+    - env: BUILD_TYPE=Release
+      os: osx
+      osx_image: xcode8
+      compiler: clang
+    - env: CLANG_VERSION=3.6 BUILD_TYPE=Debug
+      os: linux
+      addons: &clang36
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env: COMPILER=g++-4.9
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env: COMPILER=g++-5
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
           packages:
             - clang-3.6
-      env: COMPILER=clang++-3.6
-    - compiler: clang
-      addons:
-        apt:
-          sources:
+            - g++-5
+          sources: &sources
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
+            - llvm-toolchain-precise-3.6
+    - env: CLANG_VERSION=3.6 BUILD_TYPE=Release
+      os: linux
+      addons: *clang36
+    - env: CLANG_VERSION=3.7 BUILD_TYPE=Debug
+      os: linux
+      addons: &clang37
+        apt:
           packages:
             - clang-3.7
-      env: COMPILER=clang++-3.7
+            - g++-5
+          sources: &sources
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+    - env: CLANG_VERSION=3.7 BUILD_TYPE=Release
+      os: linux
+      addons: *clang37
+    - env: CLANG_VERSION=3.8 BUILD_TYPE=Debug
+      os: linux
+      addons: &clang38
+        apt:
+          packages:
+            - clang-3.8
+            - g++-5
+          sources: &sources
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release
+      os: linux
+      addons: *clang38
+    - env: GCC_VERSION=5 BUILD_TYPE=Debug
+      os: linux
+      addons: &gcc5
+        apt:
+          packages: g++-5
+          sources: *sources
+    - env: GCC_VERSION=5 BUILD_TYPE=Release
+      os: linux
+      addons: *gcc5
+    - env: GCC_VERSION=6 BUILD_TYPE=Debug
+      os: linux
+      addons: &gcc6
+        apt:
+          packages: g++-6
+          sources: *sources
+    - env: GCC_VERSION=6 BUILD_TYPE=Release
+      os: linux
+      addons: *gcc6
 
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y libopencv-dev
+install:
+  ############################################################################
+  # Install a recent CMake (unless already installed on OS X)
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      if [[ -z "$(ls -A ${DEPS_DIR}/cmake/bin)" ]]; then
+        CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
+        mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - "${CMAKE_URL}" | tar --strip-components=1 -xz -C cmake
+      fi
+      export PATH="${DEPS_DIR}/cmake/bin:${PATH}"
+    else
+      if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
+    fi
+
 script:
   - mkdir build
   - cd build
