@@ -1,44 +1,62 @@
-#include <iostream>
-#include <glm/common.hpp>
-#include <glbinding/gl/gl.h>
-#include <glbinding/Binding.h>
+#include <spdlog/spdlog.h>
 #include <glfw/glfw3.h>
 
-using namespace gl;
+#include "Renderer/Renderer.h"
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
+static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-int main() {
-    if (!glfwInit())
-    {
-        // Initialization failed
-    }
-    std::cout << "Hello, World!" << std::endl;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
-    glfwSetKeyCallback(window, key_callback);
-    if (!window)
-    {
-        // Window or context creation failed
-    }
-    glfwMakeContextCurrent(window);
-    while (!glfwWindowShouldClose(window))
-    {
-        glfwPollEvents();
-        // Keep running
-    }
-    glbinding::Binding::initialize();
-//    glClear(GL_COLOR_BUFFER_BIT);
-    std::cout << glGetString(GL_VENDOR);
-//    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+void error_callback(int error, const char *description) {
+    auto console = spdlog::get("console");
+    console->error(std::string(description));
+}
 
-//    glfwDestroyWindow(window);
-//
-//    glfwTerminate();
-    return 0;
+
+int main() {
+    auto console = spdlog::stdout_color_mt("console");
+
+    glfwSetErrorCallback(error_callback);
+    if (!glfwInit()) {
+        console->critical(std::string("Failed to initialize glfw!"));
+        exit(EXIT_FAILURE);
+    }
+
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow *window = glfwCreateWindow(640, 480, "AKRenderer", NULL, NULL);
+
+    if (!window) {
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+//    glfwSetKeyCallback(window, key_callback);
+
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+
+    auto renderer = new Renderer();
+    renderer->init();
+    renderer->printContextInfo();
+
+    auto time = glfwGetTime();
+
+    while (!glfwWindowShouldClose(window)) {
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+        auto currentTime = glfwGetTime();
+        auto deltaTime = currentTime - time;
+        renderer->updateAndDraw(deltaTime);
+        time = currentTime;
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+
+    exit(EXIT_SUCCESS);
 }

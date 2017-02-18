@@ -9,79 +9,51 @@ set(CMAKE_CXX_STANDARD 14)
 
 message("GIT_EXECUTABLE='${GIT_EXECUTABLE}'")
 
-set(glm_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glm")
-set(glm_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/glm")
-set(glm_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/glm/include")
-set(glm_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${glm_INSTALL_DIR})
-
-message("glm_PREFIX='${glm_PREFIX}'")
-message("glm_INSTALL_DIR='${glm_INSTALL_DIR}'")
-message("glm_INCLUDE_DIR='${glm_INCLUDE_DIR}'")
-message("glm_CMAKE_ARGS='${glm_CMAKE_ARGS}'")
-
-ExternalProject_Add(glm
-        PREFIX ${glm_PREFIX}
-        GIT_REPOSITORY https://github.com/g-truc/glm.git
-        INSTALL_DIR ${glm_INSTALL_DIR}
-        CMAKE_ARGS ${glm_CMAKE_ARGS}
-        UPDATE_COMMAND ""
-        )
-
-set(glfw_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glfw")
-set(glfw_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/glfw")
-set(glfw_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/glfw/include")
-set(glfw_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${glfw_INSTALL_DIR} -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DBUILD_SHARED_LIBS=OFF)
-
-message("glfw_PREFIX='${glfw_PREFIX}'")
-message("glfw_INSTALL_DIR='${glfw_INSTALL_DIR}'")
-message("glfw_INCLUDE_DIR='${glfw_INCLUDE_DIR}'")
-message("glfw_CMAKE_ARGS='${glfw_CMAKE_ARGS}'")
-
-ExternalProject_Add(glfw
-        PREFIX ${glfw_PREFIX}
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        INSTALL_DIR ${glfw_INSTALL_DIR}
-        CMAKE_ARGS ${glfw_CMAKE_ARGS}
-        UPDATE_COMMAND ""
-        )
-
-set(glbinding_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glbinding")
-set(glbinding_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/glbinding")
-set(glbinding_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/glbinding/include")
-set(glbinding_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${glbinding_INSTALL_DIR} -DOPTION_BUILD_TESTS=OFF -DOPTION_BUILD_GPU_TESTS=OFF -DOPTION_BUILD_TOOLS=OFF -DBUILD_SHARED_LIBS=OFF)
-
-message("glbinding_PREFIX='${glbinding_PREFIX}'")
-message("glbinding_INSTALL_DIR='${glbinding_INSTALL_DIR}'")
-message("glbinding_INCLUDE_DIR='${glbinding_INCLUDE_DIR}'")
-message("glbinding_CMAKE_ARGS='${glbinding_CMAKE_ARGS}'")
-
-ExternalProject_Add(glbinding
-        PREFIX ${glbinding_PREFIX}
-        GIT_REPOSITORY https://github.com/cginternals/glbinding.git
-        INSTALL_DIR ${glbinding_INSTALL_DIR}
-        CMAKE_ARGS ${glbinding_CMAKE_ARGS}
-        UPDATE_COMMAND ""
-        )
 
 set(SOURCE_FILES main.cpp)
 add_executable(AKRenderer ${SOURCE_FILES})
 
+add_subdirectory(Libraries)
+
+
 add_dependencies(AKRenderer glm)
 add_dependencies(AKRenderer glfw)
 add_dependencies(AKRenderer glbinding)
+add_dependencies(AKRenderer spdlog)
 
-include_directories(${glm_INCLUDE_DIR})
+
 include_directories(${glfw_INCLUDE_DIR})
 include_directories(${glbinding_INCLUDE_DIR})
 
+add_subdirectory(Renderer)
+
+
+target_link_libraries(AKRenderer Renderer)
 
 target_link_libraries(AKRenderer ${glfw_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3${CMAKE_STATIC_LIBRARY_SUFFIX})
 target_link_libraries(AKRenderer ${glbinding_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glbinding${CMAKE_STATIC_LIBRARY_SUFFIX})
 
-if (UNIX)
+if (UNIX AND NOT APPLE)
     target_link_libraries(AKRenderer dl X11 pthread GL m GLU Xrandr Xi Xxf86vm Xcursor Xinerama)
-endif (UNIX)
+endif (UNIX AND NOT APPLE)
+
+if (APPLE)
+    FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+    FIND_LIBRARY(OPENGL_LIBRARY OpenGL)
+    FIND_LIBRARY(IOKit_LIBRARY IOKit)
+    FIND_LIBRARY(CORE_VIDEO_LIBRARY CoreVideo)
+
+    message("COCOA_LIBRARY=${COCOA_LIBRARY}")
+    message("OPENGL_LIBRARY=${OPENGL_LIBRARY}")
+    message("IOKit_LIBRARY=${IOKit_LIBRARY}")
+    message("CORE_VIDEO_LIBRARY=${CORE_VIDEO_LIBRARY}")
+
+    target_link_libraries(AKRenderer ${COCOA_LIBRARY})
+    target_link_libraries(AKRenderer ${OPENGL_LIBRARY})
+    target_link_libraries(AKRenderer ${IOKit_LIBRARY})
+    target_link_libraries(AKRenderer ${CORE_VIDEO_LIBRARY})
+endif (APPLE)
 
 if (WIN32)
     target_link_libraries(AKRenderer opengl32)
-endif(WIN32)
+endif (WIN32)
