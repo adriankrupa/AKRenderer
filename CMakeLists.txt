@@ -24,6 +24,8 @@ add_dependencies(AKRenderer spdlog)
 
 include_directories(${glfw_INCLUDE_DIR})
 include_directories(${glbinding_INCLUDE_DIR})
+include_directories(${spdlog_INCLUDE_DIR})
+include_directories(${glm_INCLUDE_DIR})
 
 add_subdirectory(Renderer)
 
